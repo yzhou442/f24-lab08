@@ -54,17 +54,21 @@ public class SimpleHashMap<K, V> {
     public V put(K key, V value) {
         if (key == null)
             throw new NullPointerException("Key can't be null.");
-
-        List<Entry<K,V>> bucket = table.get(hash(key));
-        for (Entry<K, V> e : bucket) {
-            if (e.key.equals(key)) {
-                V result = e.value;
-                e.value = value;
-                return result;
+            
+        synchronized (this) {
+            List<Entry<K,V>> bucket = table.get(hash(key));
+            for (Entry<K, V> e : bucket) {
+                if (e.key.equals(key)) {
+                    V result = e.value;
+                    e.value = value;
+                    return result;
+                }
             }
+            bucket.add(new Entry<>(key, value));
         }
 
-        bucket.add(new Entry<>(key, value));
+
+
         return null;
     }
 
@@ -75,12 +79,15 @@ public class SimpleHashMap<K, V> {
      * @return The value for the given key, or null if the key is not present.
      */
     public V get(K key) {
-        List<Entry<K,V>> bucket = table.get(hash(key));
-        for (Entry<K, V> e : bucket) {
-            if (e.key.equals(key)) {
-                return e.value;
+        synchronized (this) {
+            List<Entry<K,V>> bucket = table.get(hash(key));
+            for (Entry<K, V> e : bucket) {
+                if (e.key.equals(key)) {
+                    return e.value;
+                }
             }
         }
+        
         return null;
     }
 
